@@ -1,0 +1,15 @@
+{
+  "name": "vulpine-bids-tracker",
+  "version": "1.0.0",
+  "description": "Upload bid PDFs, auto-extract project/company/units/amount, track KPIs on a dashboard.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "better-sqlite3": "^11.3.0",
+    "pdf-parse": "^2.4.5"
+  }
+}

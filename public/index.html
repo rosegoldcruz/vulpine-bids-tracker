@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vulpine Bid Tracker</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>Vulpine Bid Tracker</h1>
+  <label class="upload-btn">
+    + Upload Bid PDF
+    <input type="file" id="pdfInput" accept="application/pdf" multiple hidden>
+  </label>
+</header>
+
+<section class="kpi-row" id="kpiRow"></section>
+
+<section class="charts-row">
+  <div class="chart-card">
+    <h3>Bid Value by Company</h3>
+    <canvas id="companyChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Bid Status</h3>
+    <canvas id="statusChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Bids Sent per Month</h3>
+    <canvas id="monthChart"></canvas>
+  </div>
+</section>
+
+<section class="table-section">
+  <table id="bidsTable">
+    <thead>
+      <tr>
+        <th>Project</th>
+        <th>Company</th>
+        <th>Units</th>
+        <th>Bid Amount</th>
+        <th>Sent Date</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="bidsBody"></tbody>
+  </table>
+</section>
+
+<div id="uploadStatus"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
