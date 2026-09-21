@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const db = require('./db');
 const { extractFromPdf } = require('./extract');
+const { createIntegrationAuth } = require('./integration-auth');
 
 const app = express();
 const PORT = process.env.PORT || 4400;
@@ -11,6 +12,17 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/health', (_req, res) => {
+  try {
+    db.prepare('SELECT 1').get();
+    res.json({ status: 'ok', service: 'bids-tracker' });
+  } catch {
+    res.status(503).json({ status: 'error', service: 'bids-tracker' });
+  }
+});
+
+app.use('/api', createIntegrationAuth());
 
 // --- Upload a bid PDF: OCR/text extraction runs, row gets inserted ---
 app.post('/api/upload', upload.single('pdf'), async (req, res) => {
@@ -64,8 +76,10 @@ app.patch('/api/bids/:id', (req, res) => {
 
 // --- Delete a bid ---
 app.delete('/api/bids/:id', (req, res) => {
+  const existing = db.prepare('SELECT id FROM bids WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Bid not found' });
   db.prepare('DELETE FROM bids WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
+  res.json({ ok: true, id: existing.id });
 });
 
 // --- KPI summary for the dashboard ---
@@ -110,4 +124,4 @@ app.get('/api/kpis', (req, res) => {
   });
 });
 
-app.listen(PORT, () => console.log(`Bid tracker running on port ${PORT}`));
+app.listen(PORT, '127.0.0.1', () => console.log(`Bid tracker running on 127.0.0.1:${PORT}`));
