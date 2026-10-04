@@ -2,18 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vulpine Bid Tracker</title>
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
+<main class="app-shell">
 
 <header>
-  <h1>Vulpine Bid Tracker</h1>
-  <label class="upload-btn">
-    + Upload Bid PDF
-    <input type="file" id="pdfInput" accept="application/pdf" multiple hidden>
-  </label>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <h1>Vulpine Bid Tracker</h1>
+  </div>
+  <div class="header-actions">
+    <a class="export-btn" href="/api/export.csv" download>↓ Export CSV</a>
+    <label class="upload-btn">
+      + Upload Bid PDF
+      <input type="file" id="pdfInput" accept="application/pdf" multiple hidden>
+    </label>
+  </div>
 </header>
 
 <section class="kpi-row" id="kpiRow"></section>
@@ -34,23 +43,53 @@
 </section>
 
 <section class="table-section">
-  <table id="bidsTable">
-    <thead>
-      <tr>
-        <th>Project</th>
-        <th>Company</th>
-        <th>Units</th>
-        <th>Bid Amount</th>
-        <th>Sent Date</th>
-        <th>Status</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="bidsBody"></tbody>
-  </table>
+  <div class="table-heading">
+    <div>
+      <h2>Bid register</h2>
+      <p>Use Edit to unlock a row, then Save or Cancel your changes.</p>
+    </div>
+    <span class="live-status"><span></span> Live data</span>
+  </div>
+  <div class="mobile-table-tools" aria-label="Bid sorting controls">
+    <label for="mobileSortField">Sort bids</label>
+    <div>
+      <select id="mobileSortField">
+        <option value="sent_date">Sent date</option>
+        <option value="project_name">Project</option>
+        <option value="company_name">Company</option>
+        <option value="units">Units</option>
+        <option value="bid_amount">Bid amount</option>
+        <option value="projected_profit">Projected profit</option>
+        <option value="sent_time">Sent time</option>
+        <option value="recipient">Sent to</option>
+        <option value="status">Status</option>
+      </select>
+      <button id="mobileSortDirection" type="button" aria-label="Toggle sort direction">Descending ↓</button>
+    </div>
+  </div>
+  <div class="table-scroll" tabindex="0" aria-label="Scrollable bid register">
+    <table id="bidsTable">
+      <thead>
+        <tr>
+          <th><button class="sort-btn" data-sort="project_name" type="button">Project <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="company_name" type="button">Company <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="units" type="button">Units <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="bid_amount" type="button">Bid Amount <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="projected_profit" type="button">Projected Profit <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="sent_date" type="button">Sent Date <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="sent_time" type="button">Sent Time <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="recipient" type="button">Sent To <span aria-hidden="true">↕</span></button></th>
+          <th><button class="sort-btn" data-sort="status" type="button">Status <span aria-hidden="true">↕</span></button></th>
+          <th class="actions-column">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="bidsBody"></tbody>
+    </table>
+  </div>
 </section>
 
-<div id="uploadStatus"></div>
+<div id="uploadStatus" role="status" aria-live="polite"></div>
+</main>
 
 <script src="app.js"></script>
 </body>
