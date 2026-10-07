@@ -1,5 +1,5 @@
 const express = require('express');
-const multer = require('multer');
+const { pdfUpload, hasPdfSignature } = require('./upload-policy');
 const fs = require('fs');
 const path = require('path');
 const db = require('./db');
@@ -13,7 +13,6 @@ const PORT = process.env.PORT || 4400;
 const profitIndex = loadProfitIndex();
 const workbookIndex = loadWorkbookIndex();
 
-const upload = multer({ storage: multer.memoryStorage() });
 const pdfArchiveDir = path.join(__dirname, 'uploads', 'vulpine_pdfs');
 
 async function archivePdf(buffer, originalName) {
@@ -48,8 +47,9 @@ app.get('/health', (_req, res) => {
 app.use('/api', createIntegrationAuth());
 
 // --- Upload a bid PDF: OCR/text extraction runs, row gets inserted ---
-app.post('/api/upload', upload.single('pdf'), async (req, res) => {
+app.post('/api/upload', pdfUpload.single('pdf'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  if (!hasPdfSignature(req.file.buffer)) return res.status(400).json({ error: 'Invalid PDF file.' });
 
   try {
     const archivedFilename = await archivePdf(req.file.buffer, req.file.originalname);
@@ -204,6 +204,14 @@ app.get('/api/kpis', (req, res) => {
     byCompany,
     byStatus,
     byMonth
+  });
+});
+
+app.use((error, _req, res, _next) => {
+  const oversized = error.code === 'LIMIT_FILE_SIZE';
+  const rejected = error.code === 'INVALID_PDF' || String(error.code || '').startsWith('LIMIT_');
+  res.status(oversized ? 413 : rejected ? 400 : 500).json({
+    error: oversized ? 'PDF exceeds the 250 MB upload limit.' : rejected ? 'Invalid upload.' : 'The request could not be completed.',
   });
 });
 

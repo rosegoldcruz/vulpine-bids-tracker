@@ -16,19 +16,7 @@ function constantTimeEqual(provided, expected) {
   return timingSafeEqual(providedDigest, expectedDigest);
 }
 
-function isDirectLoopback(req) {
-  if (req.headers['x-forwarded-for']) return false;
-  const address = req.socket?.remoteAddress || '';
-  return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
-}
-
-function isTrustedLegacyUi(req, legacyUiHost) {
-  return Boolean(legacyUiHost) && req.hostname === legacyUiHost;
-}
-
-function authenticateIntegrationRequest({ configuredToken, providedToken, directLoopback = false, trustedLegacyUi = false }) {
-  if (directLoopback) return { allowed: true, actor: 'server-local' };
-  if (trustedLegacyUi) return { allowed: true, actor: 'legacy-tracker-ui' };
+function authenticateIntegrationRequest({ configuredToken, providedToken }) {
   if (!configuredToken) {
     return { allowed: false, status: 503, code: 'INTEGRATION_NOT_CONFIGURED', message: 'Integration authentication is not configured.' };
   }
@@ -38,7 +26,7 @@ function authenticateIntegrationRequest({ configuredToken, providedToken, direct
   return { allowed: true, actor: 'backoffice-service' };
 }
 
-function createIntegrationAuth({ legacyUiHost = 'tracker.vulpine.llc' } = {}) {
+function createIntegrationAuth() {
   return (req, res, next) => {
     const correlationId = normalizeCorrelationId(req.get(CORRELATION_HEADER));
     const startedAt = Date.now();
@@ -61,8 +49,6 @@ function createIntegrationAuth({ legacyUiHost = 'tracker.vulpine.llc' } = {}) {
     const auth = authenticateIntegrationRequest({
       configuredToken: (process.env.BIDS_TRACKER_API_TOKEN || '').trim(),
       providedToken: req.get(INTEGRATION_HEADER) || '',
-      directLoopback: isDirectLoopback(req),
-      trustedLegacyUi: isTrustedLegacyUi(req, legacyUiHost),
     });
     if (!auth.allowed) {
       return res.status(auth.status).json({ error: auth.message, code: auth.code, correlation_id: correlationId });
@@ -77,6 +63,5 @@ module.exports = {
   authenticateIntegrationRequest,
   constantTimeEqual,
   createIntegrationAuth,
-  isTrustedLegacyUi,
   normalizeCorrelationId,
 };

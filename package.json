@@ -4,13 +4,21 @@
   "description": "Upload bid PDFs, auto-extract project/company/units/amount, track KPIs on a dashboard.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",
-    "express": "^4.19.2",
-    "multer": "^1.4.5-lts.1",
+    "express": "^4.22.3",
+    "multer": "^2.4.0",
     "pdf-parse": "^2.4.5",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "overrides": {
+    "proxy-addr": "2.0.8",
+    "qs": "6.16.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true
   }
 }

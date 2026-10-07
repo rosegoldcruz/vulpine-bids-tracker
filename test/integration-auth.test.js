@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { authenticateIntegrationRequest, constantTimeEqual, isTrustedLegacyUi, normalizeCorrelationId } = require('../integration-auth');
+const { authenticateIntegrationRequest, constantTimeEqual, normalizeCorrelationId } = require('../integration-auth');
 
 test('constant-time digest comparison accepts only the exact token', () => {
   assert.equal(constantTimeEqual('expected-token', 'expected-token'), true);
@@ -24,24 +24,18 @@ test('external integration requests fail closed', () => {
   );
 });
 
-test('direct loopback maintenance remains available', () => {
-  assert.deepEqual(
-    authenticateIntegrationRequest({ configuredToken: '', providedToken: '', directLoopback: true }),
-    { allowed: true, actor: 'server-local' },
-  );
-});
-
-test('the supported standalone tracker UI is allowed without weakening other external callers', () => {
-  assert.equal(isTrustedLegacyUi({ hostname: 'tracker.vulpine.llc' }, 'tracker.vulpine.llc'), true);
-  assert.equal(isTrustedLegacyUi({ hostname: 'api.vulpinehomes.com' }, 'tracker.vulpine.llc'), false);
-  assert.deepEqual(
-    authenticateIntegrationRequest({ configuredToken: 'expected-token', providedToken: '', trustedLegacyUi: true }),
-    { allowed: true, actor: 'legacy-tracker-ui' },
-  );
-  assert.deepEqual(
-    authenticateIntegrationRequest({ configuredToken: 'expected-token', providedToken: '', trustedLegacyUi: false }),
-    { allowed: false, status: 401, code: 'UNAUTHORIZED', message: 'Invalid integration credentials.' },
-  );
+test('Host, loopback and forwarded-header hints never replace credentials', () => {
+  for (const hints of [
+    { directLoopback: true },
+    { trustedLegacyUi: true },
+    { hostname: 'tracker.vulpine.llc' },
+    { remoteAddress: '127.0.0.1', forwardedFor: undefined },
+    { remoteAddress: '127.0.0.1', forwardedFor: '127.0.0.1' },
+  ]) {
+    assert.equal(authenticateIntegrationRequest({
+      configuredToken: 'expected-token', providedToken: '', ...hints,
+    }).allowed, false);
+  }
 });
 
 test('correlation IDs are preserved only when safe', () => {
